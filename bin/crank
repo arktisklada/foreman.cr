@@ -1,5 +1,0 @@
-#!/usr/bin/env crystal
-
-require "../src/crank/cli.cr"
-
-Crank::CLI.start
