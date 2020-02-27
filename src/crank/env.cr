@@ -22,14 +22,14 @@ module Crank
 
     private def parse(filename)
       if File.exists?(filename)
-        File.read(filename).gsub("\r\n","\n").split("\n").map do |line|
+        File.read(filename).gsub("\r\n", "\n").split("\n").map do |line|
           if line =~ /\A([A-Za-z_0-9]+)=(.*)\z/
             key = $1
             case value = $2.rstrip
             # Remove single quotes
             when /\A'(.*)'\z/ then value = $1
-            # Remove double quotes and unescape string preserving newline characters
-            when /\A"(.*)"\z/ then value = $1.gsub('\n', "\n").gsub(/\\(.)/, '\1')
+              # Remove double quotes and unescape string preserving newline characters
+            when /\A"(.*)"\z/ then value = $1.gsub('\n', "\n").gsub(/\\(.)/, "\\1", true)
             end
             [key, value]
           end
