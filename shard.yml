@@ -1,0 +1,16 @@
+name: crank
+
+authors:
+  -  Clayton Liggitt (@artisklada) - Creator
+  - Andy Nicholson (@anicholson) - Maintenance
+
+version: 0.1.0
+  
+description : |
+  A crystal port of the popular Foreman project by @ddollar
+
+targets:
+  crank:
+    main: bin/crank
+
+license: Apache License v2.0
