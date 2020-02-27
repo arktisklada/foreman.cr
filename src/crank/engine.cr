@@ -115,7 +115,7 @@ module Crank
         filler_spaces += " "
       end
 
-      "#{Time.now.to_s("%H:%M:%S")} #{name} #{filler_spaces}| #{output.to_s}"
+      "#{Time.local.to_s("%H:%M:%S")} #{name} #{filler_spaces}| #{output.to_s}"
     end
 
     private def watch_for_ended_processes
