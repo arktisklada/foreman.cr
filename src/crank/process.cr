@@ -5,7 +5,7 @@ module Crank
     def initialize(name : String, command : String, env = {} of String => String)
       @name = name
       @command = command
-      @process = ::Process.new(command, env: env, shell: true, input: false, output: nil, error: nil)
+      @process = ::Process.new(command, env: env, shell: true)
     end
 
     def run
