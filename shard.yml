@@ -11,6 +11,6 @@ description : |
 
 targets:
   crank:
-    main: bin/crank
+    main: src/crank.cr
 
 license: Apache License v2.0

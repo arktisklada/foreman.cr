@@ -1,4 +1,3 @@
-require "./crank/version.cr"
+require "../src/crank/cli.cr"
 
-module Crank
-end
+Crank::CLI.start
