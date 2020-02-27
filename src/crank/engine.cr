@@ -8,7 +8,7 @@ module Crank
   class Engine
     # The signals that the engine cares about.
     HANDLED_SIGNALS = [Signal::TERM, Signal::INT, Signal::HUP, Signal::ABRT]
-    COLORS = %i(green
+    COLORS          = %i(green
       yellow
       blue
       magenta
@@ -22,7 +22,7 @@ module Crank
       light_magenta
       light_cyan
     )
-    ERROR_COLOR = :red
+    ERROR_COLOR  = :red
     SYSTEM_COLOR = :white
 
     property :writer
@@ -61,7 +61,7 @@ module Crank
 
     # Starts the Engine processes and registers handlers
     def start
-      #delay(2) { terminate_gracefully }
+      # delay(2) { terminate_gracefully }
       register_signal_handlers
       spawn_processes
       watch_for_ended_processes
@@ -101,7 +101,7 @@ module Crank
 
           @running[process.pid] = process
           write build_output(name, "started with pid #{process.pid}"), color
-        rescue #Errno::ENOENT
+        rescue # Errno::ENOENT
           write build_output(name, "unknown command: #{process.command}"), ERROR_COLOR
         end
       end
@@ -158,7 +158,7 @@ module Crank
 
       timeout = 60
 
-      timeout_error_handler = -> do
+      timeout_error_handler = ->do
         write "sending SIGKILL to all processes"
         kill_children Signal::KILL
       end
@@ -185,7 +185,7 @@ module Crank
         signal.reset
       end
     end
-    
+
     private def handle_signal(signal)
       case signal
       when Signal::TERM
