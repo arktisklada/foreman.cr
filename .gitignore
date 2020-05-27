@@ -6,3 +6,4 @@ Procfile
 bc_flags
 crank.o
 ./crank
+bin/
