@@ -13,4 +13,7 @@ targets:
   crank:
     main: src/crank.cr
 
+executables:
+  - crank
+
 license: Apache License v2.0
