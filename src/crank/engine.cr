@@ -6,9 +6,8 @@ require "./env.cr"
 
 module Crank
   class Engine
-    # The signals that the engine cares about.
     HANDLED_SIGNALS = [Signal::TERM, Signal::INT, Signal::HUP, Signal::ABRT]
-    COLORS          = %i(green
+    COLORS = %i(green
       yellow
       blue
       magenta
@@ -22,15 +21,16 @@ module Crank
       light_magenta
       light_cyan
     )
-    ERROR_COLOR  = :red
+    ERROR_COLOR = :red
     SYSTEM_COLOR = :white
 
     property :writer
 
     @output : IO::FileDescriptor
 
-    # Initializes the Engine and sets instance variables
-    def initialize
+    def initialize(procfile : String, env_file : String)
+      @procfile = procfile
+      @env_file = env_file
       # _, @output = IO.pipe(write_blocking: true)
       # @output.colorize
       @output = STDOUT
@@ -41,42 +41,50 @@ module Crank
       @env = {} of String => String
     end
 
+    # Populate runtime environment variables from a .env file
+    def load_env(filename : String)
+      unless File.exists?(env_file)
+        return
+      end
+
+      root = File.dirname(filename)
+      Crank::Env.new(filename).entries do |key, value|
+        env[key.to_s] = value.to_s
+      end
+    end
+
     # Populate the list of processes from the given Procfile
-    # @param [String] filename  A Procfile from which to populate processes
     def load_procfile(filename : String)
       root = File.dirname(filename)
       Crank::Procfile.new(filename).entries do |name, command|
-        @processes << Crank::Process.new(name, command, @env)
+        processes << Crank::Process.new(name, command, env)
       end
     end
 
-    # Populate runtime environment variables from a .env file
-    # @param [String] filename  A .env file from which to populate ENV variables
-    def load_env(filename : String)
-      root = File.dirname(filename)
-      Crank::Env.new(filename).entries do |key, value|
-        @env[key.to_s] = value.to_s
-      end
-    end
-
-    # Starts the Engine processes and registers handlers
+    # Starts the Engine processes, loads necessary files, and registers handlers
     def start
+      load_env(env_file)
+      load_procfile(procfile)
+
       # delay(2) { terminate_gracefully }
       register_signal_handlers
       spawn_processes
       watch_for_ended_processes
     end
 
+    private getter :procfile, :env_file, :env, :processes, :output, :channel, :running, :terminating
+    private setter :terminating
+
     private def write(string : String, color : Symbol = SYSTEM_COLOR, line_break : Bool = true)
       line_break_string = ""
       if line_break || string[-2] != "\n"
         line_break_string = "\n"
       end
-      @output << "#{string}#{line_break_string}".colorize(color)
+      output << "#{string}#{line_break_string}".colorize(color)
     end
 
     private def spawn_processes
-      @processes.each_with_index do |process, index|
+      processes.each_with_index do |process, index|
         name = process.name
         color = COLORS[index]
         begin
@@ -95,11 +103,11 @@ module Crank
               end
 
               status = process.wait
-              @channel.send process.pid
+              channel.send process.pid
             end
           end
 
-          @running[process.pid] = process
+          running[process.pid] = process
           write build_output(name, "started with pid #{process.pid}"), color
         rescue # Errno::ENOENT
           write build_output(name, "unknown command: #{process.command}"), ERROR_COLOR
@@ -108,7 +116,7 @@ module Crank
     end
 
     private def build_output(name, output)
-      longest_name = @processes.map { |p| p.name.size }.max
+      longest_name = processes.map { |p| p.name.size }.max
 
       filler_spaces = ""
       (longest_name - name.size).times do
@@ -119,12 +127,12 @@ module Crank
     end
 
     private def watch_for_ended_processes
-      if ended_pid = @channel.receive
-        if @running.has_key? ended_pid
-          ended_process = @running[ended_pid]
+      if ended_pid = channel.receive
+        if running.has_key? ended_pid
+          ended_process = running[ended_pid]
           write build_output(ended_process.name, "exited!")
 
-          if id = @running.delete ended_pid
+          if id = running.delete ended_pid
             terminate_gracefully
           end
         end
@@ -132,7 +140,7 @@ module Crank
     end
 
     private def kill_children(signal = Signal::TERM)
-      @running.each_key do |pid|
+      running.each_key do |pid|
         spawn do
           begin
             ::Process.kill signal, pid
@@ -142,16 +150,16 @@ module Crank
             end
           end
 
-          @running.delete pid
-          @channel.send pid
+          running.delete pid
+          channel.send pid
         end
       end
     end
 
     private def terminate_gracefully
-      return if @terminating
+      return if terminating
       restore_default_signal_handlers
-      @terminating = true
+      terminating = true
 
       write "sending SIGTERM to all processes"
       kill_children Signal::TERM
@@ -164,7 +172,7 @@ module Crank
       end
 
       Timeout.timeout(timeout, timeout_error_handler) do
-        while @running.size > 0
+        while running.size > 0
           print "."
           sleep 0.1
         end

@@ -5,12 +5,13 @@ require "./engine.cr"
 module Crank
   class CLI
     ERROR_COLOR = :red
+    PROCFILE = "Procfile"
+    DOT_ENV = ".env"
 
-    def self.start(process = nil)
+    def self.start
       check_procfile!
-      engine = Crank::Engine.new
-      engine.load_env(dotenv)
-      engine.load_procfile(procfile)
+
+      engine = Crank::Engine.new(PROCFILE, DOT_ENV)
       engine.start
     end
 
@@ -20,15 +21,9 @@ module Crank
     end
 
     def self.check_procfile!
-      error("#{procfile} does not exist.") unless File.exists?(procfile)
-    end
-
-    def self.procfile
-      "Procfile"
-    end
-
-    def self.dotenv
-      ".env"
+      unless File.exists?(PROCFILE)
+        error("#{PROCFILE} does not exist.")
+      end
     end
   end
 end

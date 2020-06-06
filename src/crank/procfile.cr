@@ -1,27 +1,26 @@
 module Crank
   class Procfile
-    # Initialize and load commands from a Procfile
-    # @param [String] filename  The filename
+    @filename : String
+
     def initialize(filename : String)
+      @filename = filename
       @entries = [] of Array(String)
-      load(filename) if filename
+      parse!
     end
 
-    # Yield each *Procfile* entry with name and command
     def entries(&block)
-      @entries.each do |entry|
+      entries.each do |entry|
         name = entry[0]
         command = entry[1]
         yield name, command
       end
     end
 
-    private def load(filename)
-      @entries = parse(filename)
-    end
+    private getter :filename, :entries
 
-    private def parse(filename)
-      File.read(filename).gsub("\r\n", "\n").split("\n").map do |line|
+    private def parse!
+      file_lines = File.read(filename).gsub("\r\n", "\n").split("\n")
+      @entries = file_lines.map do |line|
         if line =~ /^([A-Za-z0-9_-]+):\s*(.+)$/
           [$1, $2]
         end
