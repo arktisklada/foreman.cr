@@ -1,7 +1,6 @@
 version: 2
 jobs:
-  build:
-    working_directory: ~/crank
+  test:
     docker:
       - image: crystallang/crystal:0.34.0
     steps:
@@ -9,3 +8,29 @@ jobs:
       - run:
           name: test
           command: crystal spec
+
+  test_nightly:
+    docker:
+      - image: crystallang/crystal:latest
+    steps:
+      - run: crystal --version
+      - checkout
+      - run:
+          name: test
+          command: crystal spec
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - test
+  weekly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * 0"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - test_nightly
