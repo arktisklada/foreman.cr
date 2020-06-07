@@ -26,10 +26,10 @@ module Crank
         if line =~ /\A([A-Za-z_0-9]+)=(.*)\z/
           key = $1
           value = $2.rstrip
-          if /\A'(.*)'\z/
+          if value =~ /\A'(.*)'\z/
             # Remove single quotes
             value = $1
-          elsif /\A"(.*)"\z/
+          elsif value =~ /\A"(.*)"\z/
             # Remove double quotes and unescape string preserving newline characters
             value = $1.gsub('\n', "\n").gsub(/\\(.)/, "\\1", true)
           end
