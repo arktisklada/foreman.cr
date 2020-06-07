@@ -6,15 +6,6 @@ jobs:
       - image: crystallang/crystal:0.34.0
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "shard.lock" }}
-      - run:
-          name: Install dependencies.
-          command: shards install
-      - save_cache:
-          key: dependency-cache-{{ checksum "shard.lock" }}
-          paths:
-            - ./lib
       - run:
           name: test
           command: crystal spec
