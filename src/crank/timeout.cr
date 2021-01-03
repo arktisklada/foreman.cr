@@ -1,3 +1,5 @@
+require "future"
+
 module Timeout
   def self.timeout(seconds, timeout_handler, &block)
     if seconds == nil || seconds == 0

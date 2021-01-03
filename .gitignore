@@ -7,3 +7,4 @@ bc_flags
 crank.o
 ./crank
 bin/
+lib/

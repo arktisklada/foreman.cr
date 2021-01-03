@@ -34,9 +34,9 @@ module Crank
       # _, @output = IO.pipe(write_blocking: true)
       # @output.colorize
       @output = STDOUT
-      @channel = Channel(Int32).new
+      @channel = Channel(Int64).new
       @processes = [] of Crank::Process
-      @running = {} of Int32 => Crank::Process
+      @running = {} of Int64 => Crank::Process
       @terminating = false
       @env = {} of String => String
     end
